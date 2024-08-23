@@ -85,7 +85,11 @@ export const documentRouter = createTRPCRouter({
 
       console.log("document", document);
 
-      return document;
+      // Format document content as HTML
+      const content = document?.content
+        .replace(/\n/g, "<br>")
+        .replace(/----------------Page \((\d+)\) Break----------------/g, "");
+      return { ...document, content };
     }),
 
   list: publicProcedure

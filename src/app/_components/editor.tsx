@@ -92,7 +92,7 @@ export function Editor(props: Props) {
 
   useEffect(() => {
     if (document) {
-      editor?.commands.setContent(document.content);
+      editor?.commands.setContent(document.content ?? "");
     }
   }, [document]);
 
