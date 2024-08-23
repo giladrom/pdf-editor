@@ -50,12 +50,42 @@ export const documentRouter = createTRPCRouter({
       });
     }),
 
-  getById: publicProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
-      return ctx.db.document.findUnique({
-        where: { id: parseInt(input.id) },
+  createRevision: publicProcedure
+    .input(z.object({ id: z.string(), content: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.revision.create({
+        data: {
+          documentId: parseInt(input.id),
+          content: input.content,
+        },
       });
+    }),
+
+  getById: publicProcedure
+    .input(
+      z.object({
+        id: z.string().optional(),
+        revisionId: z.string().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      if (input.revisionId) {
+        const revision = await ctx.db.revision.findUnique({
+          where: { id: parseInt(input.revisionId) },
+        });
+
+        console.log("revision", revision);
+
+        return revision;
+      }
+
+      const document = await ctx.db.document.findUnique({
+        where: { id: parseInt(input.id ?? "") },
+      });
+
+      console.log("document", document);
+
+      return document;
     }),
 
   list: publicProcedure

@@ -1,19 +1,13 @@
 "use client";
 
-import { Container, Group, Text, rem } from "@mantine/core";
+import { Group, Text, rem } from "@mantine/core";
 import { IconUpload, IconPhoto, IconX } from "@tabler/icons-react";
-import {
-  Dropzone,
-  DropzoneProps,
-  IMAGE_MIME_TYPE,
-  PDF_MIME_TYPE,
-} from "@mantine/dropzone";
+import { Dropzone, DropzoneProps, PDF_MIME_TYPE } from "@mantine/dropzone";
 import { api } from "~/trpc/react";
 
 import { type PutBlobResult } from "@vercel/blob";
 import { upload } from "@vercel/blob/client";
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 type Props = {
   done: () => void;
@@ -22,6 +16,7 @@ type Props = {
 export function Uploader(props: Props) {
   const document = api.document.create.useMutation();
   const [blob, setBlob] = useState<PutBlobResult | null>(null);
+  const [loading, setLoading] = useState(false);
   const { done, ...rest } = props;
 
   useEffect(() => {
@@ -50,6 +45,7 @@ export function Uploader(props: Props) {
     // <Container>
     <Dropzone
       onDrop={async (files) => {
+        setLoading(true);
         console.log("accepted files", files);
         if (!files[0]) return;
 
@@ -59,10 +55,12 @@ export function Uploader(props: Props) {
         });
 
         setBlob(newBlob);
+        setLoading(false);
       }}
       onReject={(files) => console.log("rejected files", files)}
       maxSize={5 * 1024 ** 2}
       accept={PDF_MIME_TYPE}
+      loading={loading}
       {...rest}
     >
       <Group

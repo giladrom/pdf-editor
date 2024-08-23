@@ -1,4 +1,8 @@
-import { RichTextEditor, Link } from "@mantine/tiptap";
+import {
+  RichTextEditor,
+  Link,
+  useRichTextEditorContext,
+} from "@mantine/tiptap";
 import { useEditor } from "@tiptap/react";
 import Highlight from "@tiptap/extension-highlight";
 import StarterKit from "@tiptap/starter-kit";
@@ -9,21 +13,66 @@ import SubScript from "@tiptap/extension-subscript";
 import { useEffect, useState } from "react";
 import { api } from "~/trpc/react";
 import { Box, Flex } from "@mantine/core";
+import { IconDeviceFloppy, IconFile } from "@tabler/icons-react";
 
-const content =
-  '<h2 style="text-align: center;">Welcome to Mantine rich text editor</h2><p><code>RichTextEditor</code> component focuses on usability and is designed to be as simple as possible to bring a familiar editing experience to regular users. <code>RichTextEditor</code> is based on <a href="https://tiptap.dev/" rel="noopener noreferrer" target="_blank">Tiptap.dev</a> and supports all of its features:</p><ul><li>General text formatting: <strong>bold</strong>, <em>italic</em>, <u>underline</u>, <s>strike-through</s> </li><li>Headings (h1-h6)</li><li>Sub and super scripts (<sup>&lt;sup /&gt;</sup> and <sub>&lt;sub /&gt;</sub> tags)</li><li>Ordered and bullet lists</li><li>Text align&nbsp;</li><li>And all <a href="https://tiptap.dev/extensions" target="_blank" rel="noopener noreferrer">other extensions</a></li></ul>';
+const content = "This is the default editor content";
 
 type Props = {
-  documentId: string | null;
+  documentId?: string;
+  revisionId?: string;
+  refresh: boolean;
+  setRefresh: (refresh: boolean) => void;
 };
+
+function SaveControl({
+  documentId,
+  refresh,
+  setRefresh,
+}: {
+  documentId: string;
+  refresh: boolean;
+  setRefresh: (refresh: boolean) => void;
+}) {
+  const { editor } = useRichTextEditorContext();
+  const { mutate: createRevision } = api.document.createRevision.useMutation();
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <RichTextEditor.Control
+      disabled={!documentId}
+      onClick={() => {
+        setLoading(true);
+
+        console.log("Creating new revision for document", documentId);
+
+        createRevision(
+          {
+            id: documentId,
+            content: editor?.getHTML() ?? "",
+          },
+          {
+            onSuccess: () => {
+              setLoading(false);
+              setRefresh(!refresh);
+            },
+          },
+        );
+      }}
+      title="Save Document"
+    >
+      <IconDeviceFloppy stroke={1.5} size="1rem" />
+    </RichTextEditor.Control>
+  );
+}
 
 export function Editor(props: Props) {
   const { data: document } = api.document.getById.useQuery(
     {
-      id: props.documentId ?? "",
+      id: props.documentId,
+      revisionId: props.revisionId,
     },
     {
-      enabled: !!props.documentId,
+      enabled: !!props.documentId || !!props.revisionId,
     },
   );
 
@@ -93,6 +142,11 @@ export function Editor(props: Props) {
             <RichTextEditor.Undo />
             <RichTextEditor.Redo />
           </RichTextEditor.ControlsGroup>
+          <SaveControl
+            documentId={props.documentId ?? ""}
+            refresh={props.refresh}
+            setRefresh={props.setRefresh}
+          />
         </RichTextEditor.Toolbar>
 
         <RichTextEditor.Content />
