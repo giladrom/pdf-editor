@@ -8,30 +8,40 @@ import {
   Button,
   Badge,
   Stack,
+  Accordion,
+  List,
+  ThemeIcon,
+  rem,
+  NavLink,
+  Group,
 } from "@mantine/core";
 import { api } from "~/trpc/react";
 import { Uploader } from "./uploader";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 type Props = {
   setDocument: (documentId: string) => void;
+  setRevision: (revisionId: string) => void;
+  refresh: boolean;
+  setRefresh: (refresh: boolean) => void;
 };
 
 export default function DocumentList(props: Props) {
-  const [refresh, setRefresh] = useState(false);
   const { data: files } = api.document.list.useQuery({
-    refresh: refresh.toString(),
+    refresh: props.refresh.toString(),
   });
 
   // Load the initial list of files
   useEffect(() => {
-    setRefresh(!refresh);
+    props.setRefresh && props.setRefresh(!props.refresh);
   }, []);
 
   return (
     <Box w={300}>
       <Box mb="md">
-        <Uploader done={() => setRefresh(!refresh)} />
+        <Uploader
+          done={() => props.setRefresh && props.setRefresh(!props.refresh)}
+        />
       </Box>
       <Text fw={700} mb="xs">
         Previously Uploaded Files:
@@ -49,25 +59,55 @@ export default function DocumentList(props: Props) {
                 borderRadius: theme.radius.sm,
               })}
             >
-              <Stack>
-                <Text truncate style={{ flex: 1 }}>
-                  {file.name}
-                </Text>
-                <Text size="xs" color="dimmed">
-                  Created{" "}
-                  {`${file.createdAt.toLocaleDateString()}  ${file.createdAt.toLocaleTimeString()}`}
-                </Text>
-                <Badge size="xs" color="gray">
-                  {file.revisions.length} revisions
-                </Badge>
+              <Stack gap="xs">
+                <Group w="100%">
+                  <Stack>
+                    <Text truncate style={{ flex: 1 }}>
+                      {file.name}
+                    </Text>
+                    <Text size="xs" color="dimmed">
+                      Created{" "}
+                      {`${file.createdAt.toLocaleDateString()}  ${file.createdAt.toLocaleTimeString()}`}
+                    </Text>
+                  </Stack>
+                  <Button
+                    size="xs"
+                    variant="light"
+                    onClick={() => {
+                      props.setDocument(file.id.toString());
+                      props.setRevision("");
+                    }}
+                  >
+                    Edit
+                  </Button>
+                </Group>
+                <Accordion>
+                  <Accordion.Item value="1">
+                    <Accordion.Control>
+                      <Text size="xs" color="dimmed">
+                        {file.revisions.length} revisions
+                      </Text>
+                    </Accordion.Control>
+                    <Accordion.Panel>
+                      {file.revisions.map((revision, index) => (
+                        <NavLink
+                          label={`Revision ${index + 1}`}
+                          description={`${revision.createdAt.toLocaleDateString()}  ${revision.createdAt.toLocaleTimeString()}`}
+                          onClick={() => {
+                            props.setRevision(revision.id.toString());
+                            props.setDocument(file.id.toString());
+                          }}
+                          //   leftSection={
+                          //     <Badge size="xs" color="red" circle>
+                          //       3
+                          //     </Badge>
+                          //   }
+                        />
+                      ))}
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                </Accordion>
               </Stack>
-              <Button
-                size="xs"
-                variant="light"
-                onClick={() => props.setDocument(file.id.toString())}
-              >
-                Edit
-              </Button>
             </Flex>
           ))}
         </Flex>
