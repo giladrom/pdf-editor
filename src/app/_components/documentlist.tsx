@@ -97,6 +97,7 @@ export default function DocumentList(props: Props) {
                             props.setRevision(revision.id.toString());
                             props.setDocument(file.id.toString());
                           }}
+                          key={index}
                           //   leftSection={
                           //     <Badge size="xs" color="red" circle>
                           //       3
