@@ -22,7 +22,6 @@ import {
   TextInput,
 } from "@mantine/core";
 import { IconDeviceFloppy, IconFile, IconSearch } from "@tabler/icons-react";
-import { Notifications } from "@mantine/notifications";
 import { notifications } from "@mantine/notifications";
 
 const content = "This is the default editor content";
