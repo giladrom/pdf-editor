@@ -34,97 +34,7 @@ type Props = {
   setRefresh: (refresh: boolean) => void;
 };
 
-function SearchAndReplaceModal({
-  opened,
-  setOpened,
-}: {
-  opened: boolean;
-  setOpened: (opened: boolean) => void;
-}) {
-  const [search, setSearch] = useState("");
-  const [replace, setReplace] = useState("");
-  const { editor } = useRichTextEditorContext();
-
-  return (
-    <Modal
-      opened={opened}
-      onClose={() => setOpened(false)}
-      title="Search/Replace"
-    >
-      <Stack>
-        <TextInput
-          placeholder=""
-          value={search}
-          onChange={(e) => setSearch(e.currentTarget.value)}
-        />
-        <TextInput
-          placeholder=""
-          value={replace}
-          onChange={(e) => setReplace(e.currentTarget.value)}
-        />
-        <Group justify="flex-end">
-          <Button
-            onClick={() => {
-              setOpened(false);
-            }}
-          >
-            Close
-          </Button>
-          <Button
-            onClick={() => {
-              if (search && !replace) {
-                const content = editor?.getText();
-
-                const idx = content?.indexOf(search);
-                if (idx !== -1) {
-                  console.log("Found", idx);
-                  const location = (idx ?? 0) + 1;
-
-                  editor?.commands.setTextSelection({
-                    from: location,
-                    to: location + (search.length ?? 0),
-                  });
-                } else {
-                  notifications.show({
-                    position: "top-right",
-                    title: "Search/Replace",
-                    message: "No occurrences found",
-                  });
-                }
-              }
-
-              if (search && replace) {
-                const content = editor?.getHTML();
-
-                console.log("Replace All", search, replace);
-                setOpened(false);
-
-                let replaced = 0;
-                const newContent = content?.replace(
-                  new RegExp(search, "g"),
-                  () => {
-                    replaced += 1;
-                    return replace;
-                  },
-                );
-                editor?.commands.setContent(newContent ?? "");
-                notifications.show({
-                  position: "top-right",
-                  title: "Search/Replace",
-                  message: `${replaced} occurrences replaced`,
-                });
-              }
-            }}
-          >
-            Search/Replace
-          </Button>
-        </Group>
-      </Stack>
-    </Modal>
-  );
-}
-
-function ReplaceAllControl({
+function SearchReplaceControl({
   documentId,
   search,
   replace,
@@ -143,11 +53,14 @@ function ReplaceAllControl({
     <RichTextEditor.Control
       disabled={!documentId}
       onClick={() => {
+        // If we are searching and not replacing, find the next occurrence of the search string
         if (search && !replace) {
+          // Get the plain text content of the editor, works better for searching
           const content = editor?.getText();
 
           const idx = content?.indexOf(search, searchIdx);
 
+          // Found a match, move the cursor to the next occurrence
           if (idx !== -1) {
             setSearchIdx((idx ?? 0) + 1);
             const location = (idx ?? 0) + 1;
@@ -159,6 +72,7 @@ function ReplaceAllControl({
               to: location + (search.length ?? 0),
             });
           } else {
+            // No match found, reset the search index
             setSearchIdx(0);
             notifications.show({
               position: "top-right",
@@ -168,17 +82,24 @@ function ReplaceAllControl({
           }
         }
 
+        // If we are replacing, replace all occurrences of the search string with the replace string
         if (search && replace) {
+          // Replace directly in the HTML content
           const content = editor?.getHTML();
 
           console.log("Replace All", search, replace);
 
           let replaced = 0;
+
+          // Replace all strings and count the number of replacements
           const newContent = content?.replace(new RegExp(search, "g"), () => {
             replaced += 1;
             return replace;
           });
+
+          // Set the new content in the editor
           editor?.commands.setContent(newContent ?? "");
+
           notifications.show({
             position: "top-right",
             title: "Search/Replace",
@@ -248,6 +169,7 @@ function SaveControl({
 
         console.log("Creating new revision for document", documentId);
 
+        // When "saving" the document, create a new revision with the current content
         createRevision(
           {
             id: documentId,
@@ -366,7 +288,7 @@ export function Editor(props: Props) {
               <SearchControl search={search} setSearch={setSearch} />
               <ReplaceControl replace={replace} setReplace={setReplace} />
             </RichTextEditor.ControlsGroup>
-            <ReplaceAllControl
+            <SearchReplaceControl
               documentId={props.documentId ?? ""}
               search={search}
               replace={replace}
