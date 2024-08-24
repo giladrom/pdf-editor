@@ -14,6 +14,7 @@ import {
   rem,
   NavLink,
   Group,
+  Title,
 } from "@mantine/core";
 import { api } from "~/trpc/react";
 import { Uploader } from "./uploader";
@@ -65,10 +66,10 @@ export default function DocumentList(props: Props) {
             >
               <Stack gap="xs">
                 <Group w="100%">
-                  <Stack>
-                    <Text truncate style={{ flex: 1 }}>
+                  <Stack w="70%">
+                    <Title textWrap="wrap" order={6}>
                       {file.name}
-                    </Text>
+                    </Title>
                     <Text size="xs" color="dimmed">
                       Created{" "}
                       {`${file.createdAt.toLocaleDateString()}  ${file.createdAt.toLocaleTimeString()}`}
