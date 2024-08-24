@@ -8,6 +8,7 @@ import { api } from "~/trpc/react";
 import { type PutBlobResult } from "@vercel/blob";
 import { upload } from "@vercel/blob/client";
 import { useState, useRef, useEffect } from "react";
+import { notifications } from "@mantine/notifications";
 
 type Props = {
   done: () => void;
@@ -22,6 +23,11 @@ export function Uploader(props: Props) {
   useEffect(() => {
     if (!blob) return;
 
+    notifications.show({
+      title: "Processing document",
+      message: "Please wait while we process your document...",
+    });
+
     document.mutate(
       {
         name: blob?.pathname,
@@ -30,11 +36,19 @@ export function Uploader(props: Props) {
       {
         onSuccess: () => {
           console.log("Document created");
-
+          notifications.show({
+            title: "Document created",
+            message: "Your document has been created",
+          });
           done();
         },
         onError: (error) => {
           console.error("Error creating document", error);
+          notifications.show({
+            color: "red",
+            title: "Error creating document",
+            message: "There was an error creating your document",
+          });
           throw new Error("Error creating document");
         },
       },
