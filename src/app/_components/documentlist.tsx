@@ -26,12 +26,14 @@ type Props = {
   setRefresh: (refresh: boolean) => void;
 };
 
+// Display a list of all uploaded documents, including names, creation dates, and revision counts
 export default function DocumentList(props: Props) {
   const { data: files } = api.document.list.useQuery({
+    // Pass the refresh flag to the query to trigger a re-fetch of the file list
     refresh: props.refresh.toString(),
   });
 
-  // Load the initial list of files
+  // Load the initial list of files on first render
   useEffect(() => {
     props.setRefresh && props.setRefresh(!props.refresh);
   }, []);
@@ -39,6 +41,8 @@ export default function DocumentList(props: Props) {
   return (
     <Box w={300}>
       <Box mb="md">
+        {/* Uploader component for uploading new files. 
+        When a file is uploaded, the refresh flag is set to true to trigger a re-fetch of the file list. */}
         <Uploader
           done={() => props.setRefresh && props.setRefresh(!props.refresh)}
         />
@@ -98,11 +102,6 @@ export default function DocumentList(props: Props) {
                             props.setDocument(file.id.toString());
                           }}
                           key={index}
-                          //   leftSection={
-                          //     <Badge size="xs" color="red" circle>
-                          //       3
-                          //     </Badge>
-                          //   }
                         />
                       ))}
                     </Accordion.Panel>
