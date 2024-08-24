@@ -53,10 +53,16 @@ export const documentRouter = createTRPCRouter({
   createRevision: publicProcedure
     .input(z.object({ id: z.string(), content: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.revision.create({
+      await ctx.db.revision.create({
         data: {
           documentId: parseInt(input.id),
           content: input.content,
+        },
+      });
+
+      return ctx.db.revision.count({
+        where: {
+          documentId: parseInt(input.id),
         },
       });
     }),
