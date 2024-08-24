@@ -6,6 +6,7 @@ import { GeistSans } from "geist/font/sans";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { MantineProvider, ColorSchemeScript, createTheme } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 
 export const metadata = {
   title: "Hazel PDF Editor",
@@ -29,7 +30,10 @@ export default function RootLayout({
       </head>
       <body>
         <TRPCReactProvider>
-          <MantineProvider theme={theme}>{children}</MantineProvider>
+          <MantineProvider theme={theme}>
+            {children}
+            <Notifications />
+          </MantineProvider>
         </TRPCReactProvider>
       </body>
     </html>
